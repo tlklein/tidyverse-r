@@ -1,0 +1,302 @@
+# R Tidyverse Tutorial by Ben Stenhaug
+
+## Getting oriented in Rstudio
+
+```{r}
+z <- 4 # assign num to value
+11 - 6 # operations example
+
+ben <- c(1,2,5) # list a series of nums; c means concatenate
+ben * 2 # multiply each by 2
+
+plot(2,3) # plot a num(s) on a graph
+?rowSums # find docs 
+```
+
+```{r}
+install.packages("tidyverse") # install packages
+library(tidyverse) # load libray
+
+select(mtcars, carb) # selects all carburetors from cars
+```
+
+## Understanding %\>%
+
+```{data}
+# A tibble: 3 × 3; Data set used in Excel;
+      x     y     z
+  <dbl> <dbl> <dbl>
+1     1     4     2
+2     3     2     7
+3     6     2     6
+
+```
+
+```{r}
+library(tidyverse)
+
+data
+
+mean(rowSums(data))
+
+# equal expression; means the same;
+
+data %>% rowSums() %>% mean() # makes prev more readable in complex expressions
+```
+
+## Vectors, Data Frames, and Lists
+
+```{r}
+library(tidyverse)
+
+# Dataframes are made of vectors
+mtcars <- as_tibble(mtcars)
+
+mtcars 
+mtcars$gear # pulls up all vectors in gear
+
+# All dataframes will have to be the same lengtn
+mtcars$gear %>% length() # find length of gear column
+mtcars$carb %>% length()
+
+# We can create a dataframe from vectors
+x <- c(4, 7, 8, 2)
+y <-1:4
+
+data <- data_frame(x,y)
+data
+
+data$x
+data$y
+
+# Even one numbers is a vector
+x <- 3
+y <- 2
+
+data_frame(x,y)
+
+# Lists; Vectors that aren't the same length
+
+w <- c(4,5,2,1)
+z <- 1:10
+
+w
+z
+
+data_frame(w,z)
+
+my_list <- list(w,z) # adds list of nums in w and z to a var called my_list
+
+my_list
+
+my_list[[1]] # pulls w out
+my_list[[2]] # pulls z out 
+```
+
+## Working Directory
+
+```{r}
+library(tidyverse)
+
+setwd("C:/Users/trini/OneDrive - University Of Houston/Desktop") # sets a working directory in desktop
+
+getwd() # pulls up the working directory
+
+setwd("C:/Users/trini/OneDrive - University Of Houston/Desktop")
+
+# Save data to your directory
+my_mtcars <- mtcars
+my_mtcars 
+
+write_csv(my_mtcars, "my_mtcars.csv")
+
+# Read data from your directory
+my_mtcars
+
+read_csv("my_mtcars.csv") 
+
+my_mycars <- read_csv("my_mtcars.csv")
+
+# Subdirectory, with a file called my_iris.csv
+my_iris <- iris 
+
+write_csv(my_iris, "C:/Users/trini/OneDrive - University Of Houston/Desktop/R Tidyverse Tutorial/my_directory/my_sub_directory/my_iris.csv")
+# write to a sub-directory
+
+my_iris <- read_csv("C:/Users/trini/OneDrive - University Of Houston/Desktop/R Tidyverse Tutorial/my_directory/my_sub_directory/my_iris.csv")
+# read csv from a sub-directory
+
+my_iris
+```
+
+## Saving and Reading Data
+
+```{r}
+library(tidyverse)
+
+setwd("C:/Users/trini/OneDrive - University Of Houston/Desktop/R Tidyverse Tutorial/my_directory")
+
+# Create three objects
+x <- 1:10
+ 
+my_iris <- iris
+my_mtcars <- mtcars
+ 
+# Save as CSV; Only saves data-frames
+write_csv(my_iris, "my_iris.csv")
+my_iris <- read_csv("my_iris.csv")
+
+# Save data-frames as rds files
+saveRDS(x, "x.rds")
+y <- readRDS("x.rds")
+x
+y
+
+# Save all objects
+save.image("everything.Rdata")
+load("everything.Rdata") # load all objects on an image
+
+# One thing, but flexbale: write_csv() and read_csv()
+# One thing, just R: saveRDS() and readRDS()
+# Save everything: save .image() and load()
+```
+
+## The 5 verbs of dplyr
+```{r}
+library(tidyverse)
+mtcars
+
+# 1. filter; gets specific rows based on one or multiple conditions
+mtcars %>% 
+  filter(mpg > 21 | cyl == 6)
+
+# 2. select; 
+mtcars %>% 
+  select(cyl, everything()) # -mpg -> gets red of a column
+
+# 3. arrange
+mtcars %>% 
+  arrange(cyl, mpg)
+
+# 4. mutate
+mtcars %>% 
+  mutate(mpg_times_cyl = mpg * cyl, 
+         is_six_cyl = cyl == 6)
+
+# 5. group_by/summarize
+mtcars %>% 
+  group_by(cyl) %>% 
+  summarise(mean_mpg = mean(mpg), 
+            count = n())
+
+# combinations
+mtcars %>% 
+  select(-am) %>% 
+  filter(mpg < 20) %>% 
+  mutate(mpg_times_10 * 10) %>% 
+  arrange(cyl, mpg)
+```
+
+## Understanding Group By
+```{r}
+library(tidyverse)
+
+# tribble is a row-wise or verticle data-frame
+data <- tribble(~name, ~score, 
+                "Jen", 8,
+                "Jen", 10,
+                "Sarah", 5,
+                "Sarah", 7,
+                "Ben", 4,
+                "Ben", 5,
+                "Ben", 6,)
+
+# Basic verbs
+data %>% filter(score > 6)
+
+data %>% mutate(score_plus_one = score + 1)
+data %>% mutate(score_centered = score - mean(score))
+
+data %>% mutate(mean(score), sd(score))
+
+# Group by; Slit-Apply-Combine
+data %>% 
+  group_by(name) %>% 
+  summarize(mean(score), sd(score))
+
+data %>% 
+  group_by(name) %>% 
+  mutate(mean = mean(score))
+
+data %>% 
+  group_by(name) %>% 
+  mutate(mean = mean(score)) %>% 
+  filter(mean > 7)
+
+data %>% 
+  group_by(name) %>% 
+  mutate(mean = mean(score)) %>% 
+  filter(n() == 2)
+```
+
+## Writing a function basics
+```{r}
+x <- c(8,1,3)
+x
+
+add_10 <- function(any_vector){
+  any_vector + 10
+}
+
+add_10 <- function(any_vector){
+  result <- any_vector + 10
+  return(result)
+}
+
+add_n <- function(any_vector, n){
+  any_vector + n
+}
+
+add_10(x)
+add_n(x, 1) # matched by location
+add_n(n = 1, any_vector = x) # matched based on variable
+```
+
+## Map Functions in purr
+```{r}
+library(tidyverse)
+
+my_list <- list(
+  c(1,2,6),
+  c(4,7,1),
+  c(9,1,5)
+)
+
+# Find the mean of each element
+my_list[[1]] %>% mean()
+my_list[[2]] %>% mean()
+my_list[[3]] %>% mean()
+
+# Basic idea of a map
+my_list
+
+my_list %>% map(mean)
+map(my_list, mean)
+
+# Specific Map
+my_list %>% map_dbl(mean)
+
+# Anonymous Function 
+my_list %>% map(~ . * 2)
+
+# Other Maps
+my_list %>% map(is.numeric)
+my_list %>% map_lgl(is.numeric)
+my_list %>% map_chr(is.numeric)
+
+my_list %>% map_int(is.numeric)
+```
+
+# Reference Link
+1. https://teachingr.com/ 
+2. https://youtube.com/playlist?list=PLLxj8fULvXwGOf8uHlL4Tr62oXSB5k_in&si=n2Of4LScnbG4yWVH 
